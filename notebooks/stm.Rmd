@@ -49,6 +49,7 @@ storage <- searchK(out$documents,
                    prevalence =~ PERIOD, 
                    data = out$meta)
 
+
 ```
 
 We will now plot the results. We can see from the plot that K = 20 gives the best results
