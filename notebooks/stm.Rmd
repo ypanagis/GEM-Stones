@@ -1,0 +1,111 @@
+---
+title: "Structural Topic models"
+output:
+  html_notebook: default
+  pdf_document: default
+---
+### Introduction
+
+This document is a a demo on how to run Structural Topic Models in R. Readers can read more at: http://www.structuraltopicmodel.com/
+
+
+```{r}
+
+data_all <- read.delim2("../data/texts/echr.200.tsv",
+            encoding = "UTF-8",
+            quote="")
+
+summary(data_all$PERIOD)
+```
+
+```{r}
+library(stm)
+# Uncomment the following lines to run for the first time
+# Sit back and realx it takes a while...
+processed <- textProcessor(documents = data_all$TEXT,
+                      metadata = data_all[c("PERIOD", "CASENO")],
+                      stem = FALSE,
+                      customstopwords = c("ECHR", "article", "judgment", "strasbourg", "section", "chamber", "eur"))
+# Saves the corpus a a binary file in the disk
+save(processed, file = "../data/texts/corpus.echr.200.gz")
+
+# processsed <- load(file = "../data/texts/corpus.echr.200.gz")
+```
+
+Final preparation step to remove infrequent words
+
+```{r}
+out <- prepDocuments(processed$documents,
+                     vocab = processed$vocab,
+                     meta = processed$meta, 
+                     lower.thresh = 5) # remove words appearing in less than 5 documents
+```
+
+We will now select the best value for the number of topics $k$. The method `searchK` does exacly this. We will try to see if the topics have some dependency on the period, therefore we will add the argument `prevalence =~ PERIOD`
+```{r, eval=FALSE}
+storage <- searchK(out$documents, 
+                   out$vocab, 
+                   K = c(10,20,30,50),
+                   prevalence =~ PERIOD, 
+                   data = out$meta)
+
+```
+
+We will now plot the results. We can see from the plot that K = 20 gives the best results
+
+```{r plot k}
+plot(storage)
+```
+
+Thus we will run the model for _K=20_. Note that we supply a _seed_ to ensure replication of results because otherwise the exact topic allocation will vary
+
+```{r, echo=TRUE}
+model <- stm(out$documents, 
+             out$vocab, 
+             K = 20,
+             prevalence =~ PERIOD, 
+             max.em.its = 75,
+             data = out$meta, init.type = "Spectral",
+             seed = 1) # the seed is needed to ensure replication of results
+```
+ 
+ We will plot a summary of our models to be able to see what each models is about
+ 
+ 
+```{r plot summary}
+plot(model, type = "summary", xlim = c(-0.01, 0.6), n = 5)
+```
+
+Lets now see which documents are about Topic 11 which seems to be about _prison conditions and inhuman treatment_. We will isolate the beginning of each judment in a variable called `shortdoc`. This will be used to identify the top judgments for the Topic. `findThoughts` finds the top-n documents per topic and here we select `n=2`
+```{r}
+shortdoc <- lapply(data_all$TEXT, function(x) substr(x,1,100))
+thoughts11 <- findThoughts(model, shortdoc, n=2, topics = 11)$docs[[1]]
+plotQuote(thoughts11, width = 30, main = "Topic 11")
+
+```
+
+
+We can see that the first case is _Rohde v. Denmark_ http://hudoc.echr.coe.int/eng?i=001-69794, indeed about _pre-trial detention_ and inuman treatment
+
+We will next see if Topics 11, 14 and 1 depend on the period
+
+```{r}
+prep <- estimateEffect(1:20 ~ PERIOD, 
+                       model, 
+                       metadata = out$meta,
+                       uncertainty = "Global")
+
+plot.estimateEffect(prep, covariate = "PERIOD", topics = c(11, 14, 1),
+                    model = model,
+                    cov.value1 = "BEFORE2010",
+                    cov.value2 = "AFTER2010",
+                    method = "difference",
+                    main = "Effect of the period to topics",
+                    labeltype = "custom",
+                    custom.labels = c("Topic 11", "Topic 14", "Topic 1"),
+                     xlim = c(-0.2, 0.1),
+                    xlab = "Before 2010                                                                  After 2010")
+                    
+```
+
+We see that with the exception of Topic 11 the period plays no significant effect to the topics. It seems that Topic 11 was more prevalent in the first period of the court!
