@@ -44,4 +44,4 @@ python mallet-train.py
 ```
 
 ## Author
-_Yannis Panagis_ `<ioannis.panagis (at) jur (dot) ku (dot) dk>` [iCourts](http://jura.ku.dk/icourts/staff)
+_Yannis Panagis_ `<ioannis.panagis (at) jur (dot) ku (dot) dk>`, Data expert, University of Copenhagen, [iCourts](http://jura.ku.dk/icourts/staff)
