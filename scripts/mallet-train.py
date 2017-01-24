@@ -31,7 +31,6 @@ if __name__ == "__main__":
                          '--output-model', output_path + '.model',
                          '--output-doc-topics', output_path + '-doc-topics.txt',
                          '--output-topic-keys', output_path + '-topic-keys.txt',
-                         # '--output-topic-docs', output_path + '-topic-docs.txt',
                          '--alpha', '1',
                          '--random-seed', '1',
                          '--word-topic-counts-file', output_path + '-word-topic-counts.txt',
