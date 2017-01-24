@@ -5,7 +5,7 @@ A repository for the lecture in CBS, for the GEM-Stones methods workshop
 This is a repository created for the lecture _Text as Data I_ carried out for the _GEM-Stones Methods Workshop_ on January 27, 2017 at the Copenhagen Business School
 
 # Presentation
-The presentation is [here](Panagis-Texts as data.pptx)
+You can find the presentation [here](Panagis-Texts as data.pptx)
 
 ## Structure
  * [data](data): contains data for the workshop
